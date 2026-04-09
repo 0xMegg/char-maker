@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" fill="none">
+  <!-- short spiky hair -->
+  <ellipse cx="100" cy="58" rx="42" ry="30" fill="#2C2C2C"/>
+  <rect x="58" y="55" width="84" height="25" rx="5" fill="#2C2C2C"/>
+  <!-- spikes -->
+  <polygon points="70,38 78,20 86,38" fill="#2C2C2C"/>
+  <polygon points="90,35 100,15 110,35" fill="#2C2C2C"/>
+  <polygon points="114,38 122,20 130,38" fill="#2C2C2C"/>
+</svg>

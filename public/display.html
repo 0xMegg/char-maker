@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>char-maker Display</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: -apple-system, sans-serif;
+    color: #fff;
+  }
+
+  /* 움직이는 그라데이션 배경 */
+  .bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #0f0c29);
+    background-size: 400% 400%;
+    animation: gradientMove 8s ease infinite;
+    z-index: 0;
+  }
+  @keyframes gradientMove {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* 떠다니는 파티클 */
+  .particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: float linear infinite;
+  }
+  @keyframes float {
+    0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+    10%  { opacity: 0.3; }
+    90%  { opacity: 0.3; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* QR 코드 영역 */
+  .qr-area {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    text-align: center;
+    z-index: 10;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .qr-area img {
+    width: 160px;
+    height: 160px;
+    border-radius: 8px;
+  }
+  .qr-area p {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #ccc;
+  }
+
+  /* 캐릭터 표시 영역 */
+  .character-display {
+    text-align: center;
+  }
+  .character-display img {
+    width: 400px;
+    height: 600px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  .character-display img.visible {
+    opacity: 1;
+  }
+  .character-display .label {
+    font-size: 20px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 16px;
+  }
+
+  .waiting {
+    font-size: 24px;
+    color: rgba(255,255,255,0.4);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="particles" id="particles"></div>
+
+<div class="content">
+  <div class="character-display" id="characterDisplay">
+    <div class="waiting" id="waiting">캐릭터를 기다리는 중...</div>
+    <img id="charImg" src="" alt="">
+  </div>
+</div>
+
+<div class="qr-area">
+  <img id="qrImg" src="" alt="QR">
+  <p>QR로 접속해서<br>캐릭터를 만들어보세요</p>
+</div>
+
+<script>
+// 파티클 생성
+(function createParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['#e94560', '#533483', '#0f3460', '#16213e', '#e94560'];
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 20 + 5;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.animationDuration = (Math.random() * 10 + 8) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    container.appendChild(p);
+  }
+})();
+
+// QR 코드 로드
+(async function loadQR() {
+  const mobileUrl = window.location.origin + '/mobile.html';
+  const res = await fetch('/api/qr?url=' + encodeURIComponent(mobileUrl));
+  const data = await res.json();
+  document.getElementById('qrImg').src = data.qr;
+})();
+
+// 최신 이미지 polling (3초 간격)
+let lastTimestamp = 0;
+
+async function pollLatest() {
+  try {
+    const res = await fetch('/api/latest');
+    const data = await res.json();
+    if (data.image && data.timestamp !== lastTimestamp) {
+      lastTimestamp = data.timestamp;
+      const img = document.getElementById('charImg');
+      const waiting = document.getElementById('waiting');
+
+      img.classList.remove('visible');
+      setTimeout(() => {
+        img.src = data.image;
+        img.onload = () => {
+          waiting.style.display = 'none';
+          img.classList.add('visible');
+        };
+      }, 300);
+    }
+  } catch (e) {
+    // ignore polling errors
+  }
+}
+
+setInterval(pollLatest, 3000);
+pollLatest();
+</script>
+</body>
+</html>

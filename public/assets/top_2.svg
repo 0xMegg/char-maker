@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300" fill="none">
+  <!-- blue hoodie -->
+  <rect x="55" y="125" width="90" height="95" rx="8" fill="#3498DB"/>
+  <!-- sleeves -->
+  <rect x="35" y="130" width="24" height="50" rx="10" fill="#3498DB"/>
+  <rect x="141" y="130" width="24" height="50" rx="10" fill="#3498DB"/>
+  <!-- hood outline -->
+  <path d="M62 125 Q100 105 138 125" stroke="#2980B9" stroke-width="4" fill="none"/>
+  <!-- pocket -->
+  <rect x="75" y="180" width="50" height="20" rx="4" fill="#2980B9"/>
+</svg>
