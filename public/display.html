@@ -175,6 +175,7 @@ async function pollLatest() {
 
       img.classList.remove('visible');
       setTimeout(() => {
+        // image는 data URL 또는 경로 모두 지원
         img.src = data.image;
         img.onload = () => {
           waiting.style.display = 'none';
