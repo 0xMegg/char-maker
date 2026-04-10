@@ -8,6 +8,11 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.static('public'));
 app.use('/cards', express.static('cards'));
 
+// 루트 경로 → display.html로 리다이렉트
+app.get('/', (req, res) => {
+  res.redirect('/display.html');
+});
+
 // 인메모리 이미지 저장 (Vercel serverless 호환)
 let latestImage = null;
 
