@@ -7,8 +7,9 @@ const os = require('os');
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '5mb' }));
+app.use(express.json({ limit: '20mb' }));
 app.use(express.static('public'));
+app.use('/cards', express.static('cards'));
 app.use('/uploads', express.static('uploads'));
 
 const UPLOADS_DIR = path.join(__dirname, 'uploads');

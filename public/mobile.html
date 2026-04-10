@@ -21,8 +21,8 @@
   .preview {
     background: #16213e;
     border-radius: 12px;
-    width: 200px;
-    height: 300px;
+    width: 240px;
+    height: 240px;
     position: relative;
     margin-bottom: 16px;
     overflow: hidden;
@@ -30,14 +30,14 @@
   .preview img {
     position: absolute;
     top: 0; left: 0;
-    width: 200px;
-    height: 300px;
+    width: 240px;
+    height: 240px;
   }
   canvas { display: none; }
 
   .category {
     width: 100%;
-    max-width: 320px;
+    max-width: 360px;
     margin-bottom: 12px;
   }
   .category h2 {
@@ -48,10 +48,13 @@
   .options {
     display: flex;
     gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
   .option {
-    width: 80px;
-    height: 80px;
+    min-width: 64px;
+    width: 64px;
+    height: 64px;
     border: 3px solid #333;
     border-radius: 8px;
     background: #16213e;
@@ -60,18 +63,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
   }
   .option.selected { border-color: #e94560; }
   .option img {
-    width: 70px;
-    height: 70px;
+    width: 56px;
+    height: 56px;
     object-fit: contain;
+  }
+  .option.none-option {
+    font-size: 20px;
+    color: #555;
   }
 
   .submit-btn {
     margin-top: 12px;
     width: 100%;
-    max-width: 320px;
+    max-width: 360px;
     padding: 14px;
     background: #e94560;
     color: #fff;
@@ -100,54 +108,69 @@
 <h1>캐릭터 만들기</h1>
 
 <div class="preview" id="preview">
-  <img id="layer-body" src="/assets/body_1.svg">
-  <img id="layer-top" src="/assets/top_1.svg">
-  <img id="layer-hair" src="/assets/hair_1.svg">
+  <img id="layer-base" src="/cards/base/00.PNG">
+  <img id="layer-clothes" src="/cards/clothes/0.PNG">
+  <img id="layer-hand" src="/cards/hand/0.PNG">
+  <img id="layer-head" src="/cards/head/0.PNG">
+  <img id="layer-acc" src="/cards/acc/0.PNG">
 </div>
-<canvas id="canvas" width="200" height="300"></canvas>
+<canvas id="canvas" width="2048" height="2048"></canvas>
 
 <div class="category">
-  <h2>Body</h2>
-  <div class="options" id="body-options"></div>
-</div>
-
-<div class="category">
-  <h2>Hair</h2>
-  <div class="options" id="hair-options"></div>
+  <h2>Clothes</h2>
+  <div class="options" id="clothes-options"></div>
 </div>
 
 <div class="category">
-  <h2>Top</h2>
-  <div class="options" id="top-options"></div>
+  <h2>Head</h2>
+  <div class="options" id="head-options"></div>
+</div>
+
+<div class="category">
+  <h2>Hand</h2>
+  <div class="options" id="hand-options"></div>
+</div>
+
+<div class="category">
+  <h2>Accessory</h2>
+  <div class="options" id="acc-options"></div>
 </div>
 
 <button class="submit-btn" id="submitBtn">전송하기</button>
 <div class="status" id="status"></div>
 
 <script>
-const state = { body: 1, hair: 1, top: 1 };
-const categories = ['body', 'hair', 'top'];
+const categories = {
+  clothes: { files: [0, 1, 2, 3], selected: 0 },
+  head:    { files: [0, 6, 7, 8, 9, 10, 11, 12, 13, 14], selected: 0 },
+  hand:    { files: [0, 4, 5], selected: 0 },
+  acc:     { files: [0, 15, 16, 17], selected: 0 },
+};
 
 // 선택지 UI 생성
-categories.forEach(cat => {
+Object.keys(categories).forEach(cat => {
   const container = document.getElementById(`${cat}-options`);
-  for (let i = 1; i <= 3; i++) {
+  const { files } = categories[cat];
+  files.forEach((fileNum, idx) => {
     const div = document.createElement('div');
-    div.className = 'option' + (i === 1 ? ' selected' : '');
-    div.innerHTML = `<img src="/assets/${cat}_${i}.svg">`;
-    div.addEventListener('click', () => selectOption(cat, i));
+    div.className = 'option' + (idx === 0 ? ' selected' : '');
+    if (fileNum === 0) {
+      div.classList.add('none-option');
+      div.textContent = '✕';
+    } else {
+      div.innerHTML = `<img src="/cards/${cat}/${fileNum}.PNG">`;
+    }
+    div.addEventListener('click', () => selectOption(cat, fileNum, idx));
     container.appendChild(div);
-  }
+  });
 });
 
-function selectOption(cat, idx) {
-  state[cat] = idx;
-  // 미리보기 업데이트
-  document.getElementById(`layer-${cat}`).src = `/assets/${cat}_${idx}.svg`;
-  // 선택 표시 업데이트
+function selectOption(cat, fileNum, idx) {
+  categories[cat].selected = fileNum;
+  document.getElementById(`layer-${cat}`).src = `/cards/${cat}/${fileNum}.PNG`;
   const options = document.getElementById(`${cat}-options`).children;
   for (let i = 0; i < options.length; i++) {
-    options[i].classList.toggle('selected', i === idx - 1);
+    options[i].classList.toggle('selected', i === idx);
   }
 }
 
@@ -158,14 +181,20 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   btn.disabled = true;
   status.textContent = '전송 중...';
 
-  // 캔버스에 레이어 합성
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, 200, 300);
+  ctx.clearRect(0, 0, 2048, 2048);
 
-  const layers = ['body', 'top', 'hair'];
-  for (const cat of layers) {
-    await drawLayer(ctx, `/assets/${cat}_${state[cat]}.svg`);
+  const layers = [
+    '/cards/base/00.PNG',
+    `/cards/clothes/${categories.clothes.selected}.PNG`,
+    `/cards/hand/${categories.hand.selected}.PNG`,
+    `/cards/head/${categories.head.selected}.PNG`,
+    `/cards/acc/${categories.acc.selected}.PNG`,
+  ];
+
+  for (const src of layers) {
+    await drawLayer(ctx, src);
   }
 
   const dataUrl = canvas.toDataURL('image/png');
@@ -192,7 +221,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
 function drawLayer(ctx, src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => { ctx.drawImage(img, 0, 0, 200, 300); resolve(); };
+    img.onload = () => { ctx.drawImage(img, 0, 0, 2048, 2048); resolve(); };
     img.onerror = reject;
     img.src = src;
   });
