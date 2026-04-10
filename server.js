@@ -4,9 +4,11 @@ const QRCode = require('qrcode');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const path = require('path');
+
 app.use(express.json({ limit: '20mb' }));
-app.use(express.static('public'));
-app.use('/cards', express.static('cards'));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/cards', express.static(path.join(__dirname, 'cards')));
 
 // 루트 경로 → display.html로 리다이렉트
 app.get('/', (req, res) => {
