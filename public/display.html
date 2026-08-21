@@ -124,13 +124,13 @@
 
 <div class="content">
   <div class="character-display" id="characterDisplay">
-    <div class="waiting" id="waiting">캐릭터를 기다리는 중...</div>
-    <img id="charImg" src="" alt="">
+    <div class="waiting" id="waiting" role="status" aria-live="polite">캐릭터를 기다리는 중...</div>
+    <img id="charImg" src="" alt="완성된 캐릭터">
   </div>
 </div>
 
 <div class="qr-area">
-  <img id="qrImg" src="" alt="QR">
+  <img id="qrImg" src="" alt="모바일 제작 화면 QR 코드">
   <p>QR로 접속해서<br>캐릭터를 만들어보세요</p>
 </div>
 
@@ -155,10 +155,15 @@
 
 // QR 코드 로드
 (async function loadQR() {
-  const mobileUrl = window.location.origin + '/mobile.html';
-  const res = await fetch('/api/qr?url=' + encodeURIComponent(mobileUrl));
-  const data = await res.json();
-  document.getElementById('qrImg').src = data.qr;
+  try {
+    const mobileUrl = window.location.origin + '/mobile.html';
+    const res = await fetch('/api/qr?url=' + encodeURIComponent(mobileUrl));
+    const data = await res.json();
+    if (!res.ok || !data.qr) throw new Error(data.error || 'QR 생성 실패');
+    document.getElementById('qrImg').src = data.qr;
+  } catch {
+    document.querySelector('.qr-area p').textContent = '모바일 접속 주소를 불러오지 못했습니다.';
+  }
 })();
 
 // 최신 이미지 polling (3초 간격)

@@ -2,8 +2,13 @@
   "name": "char-maker",
   "version": "0.1.0",
   "private": true,
+  "description": "QR로 모바일 캐릭터 제작 화면과 행사장 디스플레이를 연결하는 인터랙티브 웹앱",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "dependencies": {
     "express": "^4.21.0",
